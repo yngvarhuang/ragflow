@@ -91,6 +91,7 @@ export default {
       chunkNumber: 'Número de fragmentos',
       uploadDate: 'Fecha de carga',
       chunkMethod: 'Método de fragmentación',
+      chunkMethodTip: 'Selecciona el método de fragmentación. Consulta: https://ragflow.io/docs/dev/configure_knowledge_base#select-chunking-method',
       enabled: 'Habilitar',
       disabled: 'Deshabilitar',
       action: 'Acción',

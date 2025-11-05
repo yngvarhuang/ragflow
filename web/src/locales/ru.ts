@@ -291,7 +291,7 @@ export default {
       chunkTokenNumberTip:
         'Устанавливает порог токенов для создания фрагмента. Сегменты с меньшим количеством токенов объединяются до превышения порога.',
       chunkMethod: 'Метод фрагментации',
-      chunkMethodTip: 'См. подсказки справа.',
+      chunkMethodTip: 'Выберите метод разбиения на части. Подробнее: https://ragflow.io/docs/dev/configure_knowledge_base#select-chunking-method',
       upload: 'Загрузить',
       english: 'Английский',
       chinese: 'Китайский',

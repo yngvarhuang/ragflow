@@ -201,7 +201,7 @@ export default {
       chunkTokenNumberTip:
         'Nó đặt ngưỡng token cho một khối. Một đoạn văn có ít token hơn ngưỡng này sẽ được kết hợp với đoạn văn tiếp theo cho đến khi số lượng token vượt quá ngưỡng, tại thời điểm đó, một khối được tạo. Không có khối mới nào được tạo ra trừ khi một dấu phân cách được gặp, ngay cả khi ngưỡng này bị vượt quá.',
       chunkMethod: 'Phương thức khối',
-      chunkMethodTip: 'Mẹo ở bên phải.',
+      chunkMethodTip: 'Chọn phương pháp chia đoạn. Xem: https://ragflow.io/docs/dev/configure_knowledge_base#select-chunking-method',
       upload: 'Tải lên',
       english: 'Tiếng Anh',
       chinese: 'Tiếng Trung',

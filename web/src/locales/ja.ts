@@ -191,7 +191,7 @@ export default {
       chunkTokenNumberTip:
         'チャンクのトークンしきい値を設定します。このしきい値を下回る段落は、次の段落と結合され、しきい値を超えた時点でチャンクが作成されます。新しいチャンクは、デリミタが検出されるまで作成されません。このしきい値が超過されていてもです。',
       chunkMethod: 'チャンク方法',
-      chunkMethodTip: '詳細は右側の説明をご覧ください。',
+      chunkMethodTip: '分割方法を選択します。詳しくは https://ragflow.io/docs/dev/configure_knowledge_base#select-chunking-method',
       upload: 'アップロード',
       english: '英語',
       chinese: '中国語',

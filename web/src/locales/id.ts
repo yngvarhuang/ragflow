@@ -182,7 +182,7 @@ export default {
       chunkTokenNumberTip:
         'Ini menentukan jumlah token dari sebuah potongan secara kira-kira. Tidak ada blok baru yang akan dibuat kecuali jika sebuah pembatas ditemukan, bahkan jika ambang batas ini dilampaui.',
       chunkMethod: 'Metode potongan',
-      chunkMethodTip: 'Instruksi ada di sebelah kanan.',
+      chunkMethodTip: 'Pilih metode chunking. Lihat: https://ragflow.io/docs/dev/configure_knowledge_base#select-chunking-method',
       upload: 'Unggah',
       english: 'Inggris',
       chinese: 'Cina',

@@ -214,7 +214,7 @@ export default {
       chunkTokenNumberTip:
         'Définit un seuil de tokens pour créer un segment. Les textes courts sont regroupés jusqu’à dépasser ce seuil, sauf si un délimiteur est détecté.',
       chunkMethod: 'Méthode de découpage',
-      chunkMethodTip: 'Voir les conseils à droite.',
+      chunkMethodTip: 'Sélectionnez la méthode de segmentation. Voir : https://ragflow.io/docs/dev/configure_knowledge_base#select-chunking-method',
       upload: 'Téléverser',
       english: 'Anglais',
       chinese: 'Chinois',

@@ -323,7 +323,7 @@ export default {
       chunkTokenNumberTip:
         'It kind of sets the token threshold for a creating a chunk. A segment with fewer tokens than this threshold will be combined with the following segments until the token count exceeds the threshold, at which point a chunk is created. No new chunk is created unless a delimiter is encountered, even if the threshold is exceeded.',
       chunkMethod: 'Chunking method',
-      chunkMethodTip: 'View the tips on the right.',
+      chunkMethodTip: 'Select the chunking method. See: https://ragflow.io/docs/dev/configure_knowledge_base#select-chunking-method',
       upload: 'Upload',
       english: 'English',
       chinese: 'Chinese',

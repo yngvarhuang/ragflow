@@ -227,7 +227,7 @@ export default {
       chunkTokenNumberTip:
         'Legt den Token-Schwellenwert für einen Chunk fest. Ein Absatz mit weniger Tokens als dieser Schwellenwert wird mit dem folgenden Absatz kombiniert, bis die Token-Anzahl den Schwellenwert überschreitet, dann wird ein Chunk erstellt. Ein neuer Block wird nicht erstellt, es sei denn, ein Trennzeichen wird gefunden, auch wenn dieser Schwellenwert überschritten wird.',
       chunkMethod: 'Chunk-Methode',
-      chunkMethodTip: 'Siehe Tipps auf der rechten Seite.',
+      chunkMethodTip: 'Wählen Sie die Chunking-Methode. Siehe: https://ragflow.io/docs/dev/configure_knowledge_base#select-chunking-method',
       upload: 'Hochladen',
       english: 'Englisch',
       chinese: 'Chinesisch',

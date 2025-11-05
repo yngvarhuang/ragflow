@@ -258,12 +258,10 @@ async def run_graphrag_for_kb(
     callback(msg=f"[GraphRAG] kb:{kb_id} merge lock acquired")
 
     try:
-        union_nodes: set = set()
         final_graph = None
 
         for doc_id in ok_docs:
             sg = subgraphs[doc_id]
-            union_nodes.update(set(sg.nodes()))
 
             new_graph = await merge_subgraph(
                 tenant_id,

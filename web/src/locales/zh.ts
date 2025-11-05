@@ -307,7 +307,7 @@ export default {
       chunkTokenNumberTip:
         '建议的生成文本块的 token 数阈值。如果切分得到的小文本段 token 数达不到这一阈值就会不断与之后的文本段合并，直至再合并下一个文本段会超过这一阈值为止，此时产生一个最终文本块。如果系统在切分文本段时始终没有遇到文本分段标识符，即便文本段 token 数已经超过这一阈值，系统也不会生成新文本块。',
       chunkMethod: '切片方法',
-      chunkMethodTip: '说明位于右侧。',
+      chunkMethodTip: '选择分块方法。详见：https://ragflow.io/docs/dev/configure_knowledge_base#select-chunking-method',
       upload: '上传',
       english: '英文',
       chinese: '中文',

@@ -41,18 +41,102 @@ RAGFlow offers multiple chunking template to facilitate chunking files of differ
 
 | **Template** | Description                                                           | File format                                                                                   |
 |--------------|-----------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
-| General      | Files are consecutively chunked based on a preset chunk token number. | MD, MDX, DOCX, XLSX, XLS (Excel 97-2003), PPT, PDF, TXT, JPEG, JPG, PNG, TIF, GIF, CSV, JSON, EML, HTML |
-| Q&A          |                                                                       | XLSX, XLS (Excel 97-2003), CSV/TXT                                                             |
-| Resume       | Enterprise edition only. You can also try it out on demo.ragflow.io.  | DOCX, PDF, TXT                                                                                |
-| Manual       |                                                                       | PDF                                                                                           |
-| Table        |                                                                       | XLSX, XLS (Excel 97-2003), CSV/TXT                                                             |
-| Paper        |                                                                       | PDF                                                                                           |
-| Book         |                                                                       | DOCX, PDF, TXT                                                                                |
-| Laws         |                                                                       | DOCX, PDF, TXT                                                                                |
-| Presentation |                                                                       | PDF, PPTX                                                                                     |
-| Picture      |                                                                       | JPEG, JPG, PNG, TIF, GIF                                                                      |
-| One          | Each document is chunked in its entirety (as one).                    | DOCX, XLSX, XLS (Excel 97-2003), PDF, TXT                                                      |
-| Tag          | The dataset functions as a tag set for the others.             | XLSX, CSV/TXT                                                                                 |
+| General      | Sequentially splits content to preserve semantic continuity across common layouts. | MD, MDX, DOCX, XLSX, XLS (Excel 97-2003), PPT, PDF, TXT, JPEG, JPG, PNG, TIF, GIF, CSV, JSON, EML, HTML |
+| Q&A          | Maps question–answer pairs into retrievable units with optional categories. | XLSX, XLS (Excel 97-2003), CSV/TXT                                                             |
+| Resume       | Enterprise edition only; parses resumes into structured fields for talent search.  | DOCX, PDF, TXT                                                                                |
+| Manual       | Hierarchically splits user guides and manuals by headings and sections. | PDF                                                                                           |
+| Table        | Converts rows into structured chunks using column headers for filterable search. | XLSX, XLS (Excel 97-2003), CSV/TXT                                                             |
+| Paper        | Recognizes scholarly sections and splits by paragraph for precise retrieval. | PDF                                                                                           |
+| Book         | Chunks long documents by chapter/section using heading hierarchy or TOC. | DOCX, PDF, TXT                                                                                |
+| Laws         | Splits legal texts by article/section and preserves numbering for precise lookup. | DOCX, PDF, TXT                                                                                |
+| Presentation | Chunks slides page-by-page and can include images for multimodal retrieval. | PDF, PPTX                                                                                     |
+| Picture      | Extracts text and key elements from images via OCR/vision for searchable chunks. | JPEG, JPG, PNG, TIF, GIF                                                                      |
+| One          | Treats the whole document as a single chunk to preserve full context.                    | DOCX, XLSX, XLS (Excel 97-2003), PDF, TXT                                                      |
+| Tag          | Serves as a tag dictionary for other datasets.             | XLSX, CSV/TXT                                                                                 |
+
+#### 各模板示例
+
+- Q&A
+  - Model/file‑type notes: Use CSV/TXT with clear headers; one Q&A per row.
+  - CSV example:
+    ```csv
+    question,answer,category
+    How do I reset my password?,Go to Settings → Security → Reset Password.,Account
+    How to request an invoice?,Sign in to the enterprise portal and submit a request.,Finance
+    ```
+
+- Table
+  - Model/file‑type notes: First row as header; each row becomes a chunk; multi‑value fields can use delimiters (e.g., `;`).
+  - CSV example:
+    ```csv
+    id,title,content,tags
+    1001,Account Security,Password strength and two-factor authentication,security;auth
+    1002,Invoice Issuance,Workflow and required fields,finance;invoice
+    ```
+
+- Laws
+  - Model/file‑type notes: Keep consistent numbering (Chapter/Article). Prefer DOCX/TXT or searchable PDF.
+  - Text example:
+    ```text
+    Chapter I General Provisions
+    Article 3 A contract is established according to law …
+    ```
+
+- Presentation
+  - Model/file‑type notes: PPTX text should be in text boxes; PDFs with one slide per page are preferred; images can be extracted for multimodal search.
+  - PPTX example:
+    ```text
+    Slide 1: Quarterly Report
+    - Revenue up 12%
+    - Key initiatives: A, B, C
+    ```
+
+- Picture
+  - Model/file‑type notes: OCR/vision extracts text and key elements; ensure readable resolution; avoid glare and shadows.
+  - Example:
+    `invoice.jpg` with vendor name, date, and total captured by OCR.
+
+- Resume (Enterprise)
+  - Model/file‑type notes: Prefer text‑based DOCX/PDF (scans should be OCRed first).
+  - Example (fields extracted):
+    ```json
+    {"name":"John Doe","email":"john@doe.com","education":"B.Sc. 2015–2019","experience":"Software Engineer 2019–2024","skills":"Python, SQL"}
+    ```
+
+- Manual
+  - Model/file‑type notes: PDFs with clear heading hierarchy; content is chunked by section.
+  - Text example:
+    ```text
+    1. Getting Started
+    1.1 Installation
+    1.2 Configuration
+    ```
+
+- Paper
+  - Model/file‑type notes: Use searchable PDFs; typical sections (Abstract, Methods, Results) are recognized.
+  - Text example:
+    ```text
+    Abstract — We propose …
+    Methods — We collected …
+    Results — The model …
+    ```
+
+- Book
+  - Model/file‑type notes: DOCX with Heading 1/2/3 styles or PDFs with a valid TOC are preferred.
+  - Text example:
+    ```text
+    Chapter 2: The Basics
+    Section 2.1: Introduction
+    ```
+
+- Tag
+  - Model/file‑type notes: At least two columns (e.g., `tag`, `keywords`). Used by other datasets.
+  - CSV example:
+    ```csv
+    tag,keywords
+    Security,password;permission;auth
+    Finance,invoice;expense;tax
+    ```
 
 You can also change a file's chunking method on the **Datasets** page.
 
