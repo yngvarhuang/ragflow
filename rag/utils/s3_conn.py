@@ -68,41 +68,52 @@ class RAGFlowS3:
         try:
             s3_params = {}
             config_kwargs = {}
-            # if not set ak/sk, boto3 s3 client would try several ways to do the authentication
-            # see doc: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#configuring-credentials
+            # Credentials: if not provided, boto3 will use default provider chain
             if self.access_key and self.secret_key:
-                s3_params = {
-                    'aws_access_key_id': self.access_key,
-                    'aws_secret_access_key': self.secret_key,
-                    'aws_session_token': self.session_token,
-                }
+                s3_params['aws_access_key_id'] = self.access_key
+                s3_params['aws_secret_access_key'] = self.secret_key
+                if self.session_token:
+                    s3_params['aws_session_token'] = self.session_token
             if self.region_name:
                 s3_params['region_name'] = self.region_name
             if self.endpoint_url:
                 s3_params['endpoint_url'] = self.endpoint_url
-            
+
             # Configure signature_version and addressing_style through Config object
             if self.signature_version:
                 config_kwargs['signature_version'] = self.signature_version
             if self.addressing_style:
                 config_kwargs['s3'] = {'addressing_style': self.addressing_style}
-            
+
             if config_kwargs:
                 s3_params['config'] = Config(**config_kwargs)
-            
-            self.conn = [boto3.client('s3', **s3_params)]
+
+            self.conn = boto3.client('s3', **s3_params)
         except Exception:
             logging.exception(f"Fail to connect at region {self.region_name} or endpoint {self.endpoint_url}")
 
     def __close__(self):
-        del self.conn[0]
-        self.conn = None
+        try:
+            if self.conn is not None:
+                del self.conn
+        finally:
+            self.conn = None
+
+    def _ensure_conn(self):
+        if self.conn is None:
+            self.__open__()
+        return self.conn is not None
 
     @use_default_bucket
     def bucket_exists(self, bucket, *args, **kwargs):
+        if not self._ensure_conn():
+            return False
+        conn = self.conn
+        if conn is None:
+            return False
         try:
             logging.debug(f"head_bucket bucketname {bucket}")
-            self.conn[0].head_bucket(Bucket=bucket)
+            conn.head_bucket(Bucket=bucket)
             exists = True
         except ClientError:
             logging.exception(f"head_bucket error {bucket}")
@@ -110,14 +121,19 @@ class RAGFlowS3:
         return exists
 
     def health(self):
+        if not self._ensure_conn():
+            return None
         bucket = self.bucket
         fnm = "txtxtxtxt1"
         fnm, binary = f"{self.prefix_path}/{fnm}" if self.prefix_path else fnm, b"_t@@@1"
+        conn = self.conn
+        if conn is None:
+            return None
         if not self.bucket_exists(bucket):
-            self.conn[0].create_bucket(Bucket=bucket)
+            conn.create_bucket(Bucket=bucket)
             logging.debug(f"create bucket {bucket} ********")
 
-        r = self.conn[0].upload_fileobj(BytesIO(binary), bucket, fnm)
+        r = conn.upload_fileobj(BytesIO(binary), bucket, fnm)
         return r
 
     def get_properties(self, bucket, key):
@@ -129,13 +145,18 @@ class RAGFlowS3:
     @use_prefix_path
     @use_default_bucket
     def put(self, bucket, fnm, binary, *args, **kwargs):
+        if not self._ensure_conn():
+            return None
+        conn = self.conn
+        if conn is None:
+            return None
         logging.debug(f"bucket name {bucket}; filename :{fnm}:")
         for _ in range(1):
             try:
                 if not self.bucket_exists(bucket):
-                    self.conn[0].create_bucket(Bucket=bucket)
+                    conn.create_bucket(Bucket=bucket)
                     logging.info(f"create bucket {bucket} ********")
-                r = self.conn[0].upload_fileobj(BytesIO(binary), bucket, fnm)
+                r = conn.upload_fileobj(BytesIO(binary), bucket, fnm)
 
                 return r
             except Exception:
@@ -146,17 +167,27 @@ class RAGFlowS3:
     @use_prefix_path
     @use_default_bucket
     def rm(self, bucket, fnm, *args, **kwargs):
+        if not self._ensure_conn():
+            return None
+        conn = self.conn
+        if conn is None:
+            return None
         try:
-            self.conn[0].delete_object(Bucket=bucket, Key=fnm)
+            conn.delete_object(Bucket=bucket, Key=fnm)
         except Exception:
             logging.exception(f"Fail rm {bucket}/{fnm}")
 
     @use_prefix_path
     @use_default_bucket
     def get(self, bucket, fnm, *args, **kwargs):
+        if not self._ensure_conn():
+            return None
+        conn = self.conn
+        if conn is None:
+            return None
         for _ in range(1):
             try:
-                r = self.conn[0].get_object(Bucket=bucket, Key=fnm)
+                r = conn.get_object(Bucket=bucket, Key=fnm)
                 object_data = r['Body'].read()
                 return object_data
             except Exception:
@@ -168,8 +199,13 @@ class RAGFlowS3:
     @use_prefix_path
     @use_default_bucket
     def obj_exist(self, bucket, fnm, *args, **kwargs):
+        if not self._ensure_conn():
+            return False
+        conn = self.conn
+        if conn is None:
+            return False
         try:
-            if self.conn[0].head_object(Bucket=bucket, Key=fnm):
+            if conn.head_object(Bucket=bucket, Key=fnm):
                 return True
         except ClientError as e:
             if e.response['Error']['Code'] == '404':
@@ -180,9 +216,14 @@ class RAGFlowS3:
     @use_prefix_path
     @use_default_bucket
     def get_presigned_url(self, bucket, fnm, expires, *args, **kwargs):
+        if not self._ensure_conn():
+            return None
+        conn = self.conn
+        if conn is None:
+            return None
         for _ in range(10):
             try:
-                r = self.conn[0].generate_presigned_url('get_object',
+                r = conn.generate_presigned_url('get_object',
                                                      Params={'Bucket': bucket,
                                                              'Key': fnm},
                                                      ExpiresIn=expires)
@@ -196,13 +237,50 @@ class RAGFlowS3:
 
     @use_default_bucket
     def rm_bucket(self, bucket, *args, **kwargs):
-        for conn in self.conn:
-            try:
-                if not conn.bucket_exists(bucket):
-                    continue
-                for o in conn.list_objects_v2(Bucket=bucket):
-                    conn.delete_object(bucket, o.object_name)
-                conn.delete_bucket(Bucket=bucket)
-                return
-            except Exception as e:
-                logging.error(f"Fail rm {bucket}: " + str(e))
+        if not self._ensure_conn():
+            return None
+        conn = self.conn
+        if conn is None:
+            return None
+        try:
+            if not self.bucket_exists(bucket):
+                return None
+            # List and delete all objects from the bucket
+            continuation_token = None
+            while True:
+                if continuation_token:
+                    resp = conn.list_objects_v2(Bucket=bucket, ContinuationToken=continuation_token)
+                else:
+                    resp = conn.list_objects_v2(Bucket=bucket)
+                contents = resp.get('Contents', [])
+                if contents:
+                    delete_keys = {'Objects': [{'Key': obj['Key']} for obj in contents]}
+                    conn.delete_objects(Bucket=bucket, Delete=delete_keys)
+                if resp.get('IsTruncated'):
+                    continuation_token = resp.get('NextContinuationToken')
+                else:
+                    break
+            conn.delete_bucket(Bucket=bucket)
+            return True
+        except Exception as e:
+            logging.error(f"Fail rm {bucket}: {e}")
+            return False
+
+    @use_default_bucket
+    def move(self, src_bucket, src_path, dest_bucket, dest_path, *args, **kwargs):
+        if not self._ensure_conn():
+            return False
+        conn = self.conn
+        if conn is None:
+            return False
+        try:
+            conn.copy_object(
+                Bucket=dest_bucket,
+                Key=dest_path,
+                CopySource={'Bucket': src_bucket, 'Key': src_path},
+            )
+            conn.delete_object(Bucket=src_bucket, Key=src_path)
+            return True
+        except Exception as e:
+            logging.exception(f"Fail to move {src_bucket}/{src_path} -> {dest_bucket}/{dest_path}: {e}")
+            return False

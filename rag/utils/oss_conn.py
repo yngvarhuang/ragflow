@@ -27,7 +27,8 @@ from rag import settings
 class RAGFlowOSS:
     def __init__(self):
         self.conn = None
-        self.oss_config = settings.OSS
+        # Guard against missing configuration
+        self.oss_config = settings.OSS or {}
         self.access_key = self.oss_config.get('access_key', None)
         self.secret_key = self.oss_config.get('secret_key', None)
         self.endpoint_url = self.oss_config.get('endpoint_url', None)
@@ -73,11 +74,21 @@ class RAGFlowOSS:
             logging.exception(f"Fail to connect at region {self.region}")
 
     def __close__(self):
-        del self.conn
-        self.conn = None
+        try:
+            if self.conn is not None:
+                del self.conn
+        finally:
+            self.conn = None
+
+    def _ensure_conn(self):
+        if self.conn is None:
+            self.__open__()
+        return self.conn is not None
 
     @use_default_bucket
     def bucket_exists(self, bucket):
+        if not self._ensure_conn():
+            return False
         try:
             logging.debug(f"head_bucket bucketname {bucket}")
             self.conn.head_bucket(Bucket=bucket)
@@ -88,6 +99,8 @@ class RAGFlowOSS:
         return exists
 
     def health(self):
+        if not self._ensure_conn():
+            return None
         bucket = self.bucket
         fnm = "txtxtxtxt1"
         fnm, binary = f"{self.prefix_path}/{fnm}" if self.prefix_path else fnm, b"_t@@@1"
@@ -107,6 +120,8 @@ class RAGFlowOSS:
     @use_prefix_path
     @use_default_bucket
     def put(self, bucket, fnm, binary, tenant_id=None):
+        if not self._ensure_conn():
+            return None
         logging.debug(f"bucket name {bucket}; filename :{fnm}:")
         for _ in range(1):
             try:
@@ -124,6 +139,8 @@ class RAGFlowOSS:
     @use_prefix_path
     @use_default_bucket
     def rm(self, bucket, fnm, tenant_id=None):
+        if not self._ensure_conn():
+            return None
         try:
             self.conn.delete_object(Bucket=bucket, Key=fnm)
         except Exception:
@@ -132,6 +149,8 @@ class RAGFlowOSS:
     @use_prefix_path
     @use_default_bucket
     def get(self, bucket, fnm, tenant_id=None):
+        if not self._ensure_conn():
+            return None
         for _ in range(1):
             try:
                 r = self.conn.get_object(Bucket=bucket, Key=fnm)
@@ -146,6 +165,8 @@ class RAGFlowOSS:
     @use_prefix_path
     @use_default_bucket
     def obj_exist(self, bucket, fnm, tenant_id=None):
+        if not self._ensure_conn():
+            return False
         try:
             if self.conn.head_object(Bucket=bucket, Key=fnm):
                 return True
@@ -158,6 +179,8 @@ class RAGFlowOSS:
     @use_prefix_path
     @use_default_bucket
     def get_presigned_url(self, bucket, fnm, expires, tenant_id=None):
+        if not self._ensure_conn():
+            return None
         for _ in range(10):
             try:
                 r = self.conn.generate_presigned_url('get_object',
@@ -171,4 +194,20 @@ class RAGFlowOSS:
                 self.__open__()
                 time.sleep(1)
         return
+
+    @use_default_bucket
+    def move(self, src_bucket, src_path, dest_bucket, dest_path, *args, **kwargs):
+        if not self._ensure_conn():
+            return False
+        try:
+            self.conn.copy_object(
+                Bucket=dest_bucket,
+                Key=dest_path,
+                CopySource={'Bucket': src_bucket, 'Key': src_path},
+            )
+            self.conn.delete_object(Bucket=src_bucket, Key=src_path)
+            return True
+        except Exception as e:
+            logging.exception(f"Fail to move {src_bucket}/{src_path} -> {dest_bucket}/{dest_path}: {e}")
+            return False
 
