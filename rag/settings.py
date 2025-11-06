@@ -34,6 +34,7 @@ S3 = {}
 MINIO = {}
 OSS = {}
 OS = {}
+OBS = {}
 
 # Initialize the selected configuration data based on environment variables to solve the problem of initialization errors due to lack of configuration
 if globals.DOC_ENGINE == 'elasticsearch':
@@ -51,6 +52,8 @@ elif STORAGE_IMPL_TYPE == 'MINIO':
     MINIO = decrypt_database_config(name="minio")
 elif STORAGE_IMPL_TYPE == 'OSS':
     OSS = get_base_config("oss", {})
+elif STORAGE_IMPL_TYPE == 'OBS':
+    OBS = get_base_config("obs", {})
 
 try:
     REDIS = decrypt_database_config(name="redis")

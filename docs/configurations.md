@@ -85,6 +85,19 @@ RAGFlow utilizes MinIO as its object storage solution, leveraging its scalabilit
 - `MINIO_PASSWORD`
   The password for MinIO.
 
+> [!TIP]  
+> RAGFlow supports multiple object storage backends and allows switching via environment variable `STORAGE_IMPL`.
+> 
+> - `STORAGE_IMPL`  
+>   Select storage implementation: `MINIO`, `AWS_S3`, `OSS`, `OBS`, `AZURE_SPN`, `AZURE_SAS`, `OPENDAL`. Defaults to `MINIO`.
+> 
+> To enable Huawei Cloud OBS, set:
+> 
+> ```
+> STORAGE_IMPL=OBS
+> ```
+
+
 ### Redis
 
 - `REDIS_PORT`
@@ -166,6 +179,35 @@ If you cannot download the RAGFlow Docker image, try the following mirrors.
 - `user`: The username for MinIO.
 - `password`: The password for MinIO.
 - `host`: The MinIO serving IP *and* port inside the Docker container. Defaults to `minio:9000`.
+
+### `obs`
+
+- `access_key`: Huawei Cloud OBS access key ID.
+- `secret_key`: Huawei Cloud OBS secret access key.
+- `endpoint_url`: OBS S3-compatible endpoint, e.g. `https://obs.<region>.myhuaweicloud.com`.
+- `region`: OBS region (e.g. `cn-north-4`).
+- `bucket`: Optional. Bucket name to store files centrally.
+- `prefix_path`: Optional. A prefix path to organize objects inside the bucket.
+
+### `s3`
+
+- `access_key`: The access key ID used to authenticate requests to the S3 service.
+- `secret_key`: The secret access key used to authenticate requests to the S3 service.
+- `endpoint_url`: The URL of the S3-compatible service endpoint (optional).
+- `bucket`: Optional. The bucket name to store files centrally.
+- `region`: The region where the bucket is located.
+- `signature_version`: Optional. e.g. `v4`.
+- `addressing_style`: Optional. `path` or `virtual`.
+- `prefix_path`: Optional. A prefix path to organize objects inside the bucket.
+
+### `oss`
+
+- `access_key`: The access key ID used to authenticate requests to OSS.
+- `secret_key`: The secret access key used to authenticate requests to OSS.
+- `endpoint_url`: The URL of the OSS endpoint.
+- `region`: The OSS region where the bucket is located.
+- `bucket`: Optional. Bucket name to store files centrally.
+- `prefix_path`: Optional. A prefix path to organize objects inside the bucket.
 
 ### `oauth`
 

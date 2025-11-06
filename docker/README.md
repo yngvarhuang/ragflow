@@ -65,6 +65,18 @@ The [.env](./.env) file contains important environment variables for Docker.
 - `MINIO_PASSWORD`  
   The password for MinIO.
 
+> [!TIP]  
+> RAGFlow supports multiple object storage backends and allows switching via environment variable `STORAGE_IMPL`.
+> 
+> - `STORAGE_IMPL`  
+>   Select storage implementation: `MINIO`, `AWS_S3`, `OSS`, `OBS`, `AZURE_SPN`, `AZURE_SAS`, `OPENDAL`. Defaults to `MINIO`.
+> 
+> To enable Huawei Cloud OBS, set:
+> 
+> ```
+> STORAGE_IMPL=OBS
+> ```
+
 ### Redis
 
 - `REDIS_PORT`  
@@ -143,6 +155,32 @@ The [.env](./.env) file contains important environment variables for Docker.
   - `user`: The username for MinIO.
   - `password`: The password for MinIO.
   - `host`: The MinIO serving IP *and* port inside the Docker container. Defaults to `minio:9000`.
+
+- `obs`
+  - `access_key`: Huawei Cloud OBS access key ID.
+  - `secret_key`: Huawei Cloud OBS secret access key.
+  - `endpoint_url`: S3-compatible endpoint, e.g. `https://obs.<region>.myhuaweicloud.com`.
+  - `region`: OBS region (e.g. `cn-north-4`).
+  - `bucket`: Optional. Central bucket name to store files.
+  - `prefix_path`: Optional. Object key prefix to organize files.
+
+- `s3`
+  - `access_key`: Access key ID.
+  - `secret_key`: Secret access key.
+  - `endpoint_url`: S3-compatible endpoint (optional).
+  - `bucket`: Optional. Central bucket name.
+  - `region`: Bucket region.
+  - `signature_version`: Optional. e.g. `v4`.
+  - `addressing_style`: Optional. `path` or `virtual`.
+  - `prefix_path`: Optional. Object key prefix.
+
+- `oss`
+  - `access_key`: Access key ID.
+  - `secret_key`: Secret access key.
+  - `endpoint_url`: OSS endpoint.
+  - `region`: OSS region.
+  - `bucket`: Optional. Central bucket name.
+  - `prefix_path`: Optional. Object key prefix.
 
 - `oss`
   - `access_key`: The access key ID used to authenticate requests to the OSS service.
