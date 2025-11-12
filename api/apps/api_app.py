@@ -37,7 +37,7 @@ from common.constants import RetCode, VALID_TASK_STATUS, LLMType, ParserType, Fi
 from api.utils.api_utils import server_error_response, get_data_error_result, get_json_result, validate_request, \
     generate_confirmation_token
 
-from api.utils.file_utils import filename_type, thumbnail
+from api.utils.file_utils import filename_type, thumbnail, sanitize_path
 from rag.app.tag import label_question
 from rag.prompts.generator import keyword_extraction
 from common.time_utils import current_timestamp, datetime_format
@@ -426,7 +426,10 @@ def upload():
             return get_data_error_result(
                 message="This type of file has not been supported yet!")
 
-        location = filename
+        # Optional parent path for object storage
+        safe_parent_path = sanitize_path(request.form.get("parent_path"))
+
+        location = filename if not safe_parent_path else f"{safe_parent_path}/{filename}"
         while settings.STORAGE_IMPL.obj_exist(kb_id, location):
             location += "_"
         blob = request.files['file'].read()
@@ -508,7 +511,7 @@ def upload_parse():
             return get_json_result(
                 data=False, message='No file selected!', code=RetCode.ARGUMENT_ERROR)
 
-    doc_ids = doc_upload_and_parse(request.form.get("conversation_id"), file_objs, objs[0].tenant_id)
+    doc_ids = doc_upload_and_parse(request.form.get("conversation_id"), file_objs, objs[0].tenant_id, parent_path=request.form.get("parent_path"))
     return get_json_result(data=doc_ids)
 
 

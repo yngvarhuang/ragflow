@@ -55,6 +55,7 @@ from common import settings
 @validate_request("kb_id")
 def upload():
     kb_id = request.form.get("kb_id")
+    parent_path = request.form.get("parent_path")
     if not kb_id:
         return get_json_result(data=False, message='Lack of "KB ID"', code=RetCode.ARGUMENT_ERROR)
     if "file" not in request.files:
@@ -73,7 +74,7 @@ def upload():
     if not check_kb_team_permission(kb, current_user.id):
         return get_json_result(data=False, message="No authorization.", code=RetCode.AUTHENTICATION_ERROR)
 
-    err, files = FileService.upload_document(kb, file_objs, current_user.id)
+    err, files = FileService.upload_document(kb, file_objs, current_user.id, parent_path=parent_path)
     if err:
         return get_json_result(data=files, message="\n".join(err), code=RetCode.SERVER_ERROR)
 
@@ -595,7 +596,7 @@ def upload_and_parse():
         if file_obj.filename == "":
             return get_json_result(data=False, message="No file selected!", code=RetCode.ARGUMENT_ERROR)
 
-    doc_ids = doc_upload_and_parse(request.form.get("conversation_id"), file_objs, current_user.id)
+    doc_ids = doc_upload_and_parse(request.form.get("conversation_id"), file_objs, current_user.id, parent_path=request.form.get("parent_path"))
 
     return get_json_result(data=doc_ids)
 
