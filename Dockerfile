@@ -4,6 +4,10 @@ USER root
 SHELL ["/bin/bash", "-c"]
 
 ARG NEED_MIRROR=0
+ARG UBUNTU_MIRROR=http://mirrors.tuna.tsinghua.edu.cn
+ARG UBUNTU_PORTS_MIRROR=${UBUNTU_MIRROR}
+ARG RUST_MIRROR_DIST=https://mirrors.tuna.tsinghua.edu.cn/rustup
+ARG RUST_MIRROR_UPDATE=https://mirrors.tuna.tsinghua.edu.cn/rustup/rustup
 
 WORKDIR /ragflow
 
@@ -35,11 +39,13 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Building C extensions: libpython3-dev libgtk-4-1 libnss3 xdg-utils libgbm-dev
 RUN --mount=type=cache,id=ragflow_apt,target=/var/cache/apt,sharing=locked \
     if [ "$NEED_MIRROR" == "1" ]; then \
-        sed -i 's|http://ports.ubuntu.com|http://mirrors.tuna.tsinghua.edu.cn|g' /etc/apt/sources.list; \
-        sed -i 's|http://archive.ubuntu.com|http://mirrors.tuna.tsinghua.edu.cn|g' /etc/apt/sources.list; \
+        sed -i "s|http://ports.ubuntu.com|${UBUNTU_PORTS_MIRROR}|g" /etc/apt/sources.list; \
+        sed -i "s|http://archive.ubuntu.com|${UBUNTU_MIRROR}|g" /etc/apt/sources.list; \
     fi; \
     rm -f /etc/apt/apt.conf.d/docker-clean && \
     echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache && \
+    echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/99retries && \
+    echo 'Acquire::http::Timeout "30";' > /etc/apt/apt.conf.d/99timeouts && \
     chmod 1777 /tmp && \
     apt update && \
     apt --no-install-recommends install -y ca-certificates && \
@@ -79,13 +85,14 @@ RUN --mount=type=cache,id=ragflow_apt,target=/var/cache/apt,sharing=locked \
 # A modern version of cargo is needed for the latest version of the Rust compiler.
 RUN apt update && apt install -y curl build-essential \
     && if [ "$NEED_MIRROR" == "1" ]; then \
-         # Use TUNA mirrors for rustup/rust dist files
-         export RUSTUP_DIST_SERVER="https://mirrors.tuna.tsinghua.edu.cn/rustup"; \
-         export RUSTUP_UPDATE_ROOT="https://mirrors.tuna.tsinghua.edu.cn/rustup/rustup"; \
-         echo "Using TUNA mirrors for Rustup."; \
+         export RUSTUP_DIST_SERVER="${RUST_MIRROR_DIST}"; \
+         export RUSTUP_UPDATE_ROOT="${RUST_MIRROR_UPDATE}"; \
+         echo "Using Rustup mirror: ${RUSTUP_DIST_SERVER}"; \
        fi; \
-    # Force curl to use HTTP/1.1
-    curl --proto '=https' --tlsv1.2 --http1.1 -sSf https://sh.rustup.rs | bash -s -- -y --profile minimal \
+    curl --proto '=https' --tlsv1.2 --http1.1 -sSf https://sh.rustup.rs | bash -s -- -y --profile minimal || \
+    ( unset RUSTUP_DIST_SERVER RUSTUP_UPDATE_ROOT; \
+      echo "Fallback to official rustup"; \
+      curl --proto '=https' --tlsv1.2 --http1.1 -sSf https://sh.rustup.rs | bash -s -- -y --profile minimal ) \
     && echo 'export PATH="/root/.cargo/bin:${PATH}"' >> /root/.bashrc
 
 ENV PATH="/root/.cargo/bin:${PATH}"
